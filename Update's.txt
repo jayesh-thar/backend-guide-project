@@ -1,0 +1,54 @@
+Yes solid progress today for a first session:
+
+✅ Full auth flow diagram — multiple iterations, each one better
+✅ Understood JWT + Cookie concept
+✅ ES Modules vs CommonJS — import/export
+✅ dotenv setup and why it exists
+✅ Basic Express server running
+
+
+Tomorrow We Continue With:
+
+MongoDB Atlas setup + connection (config/db.js)
+User model / schema (models/user.model.js)
+Then slowly into routes and controllers
+
+
+----
+Day 02:
+
+*Step 1 → Connect MongoDB          (config/db.js)
+            ↓
+*Step 2 → Update server.js         (call db connection)
+            ↓
+*Step 3 → Create User Model        (models/user.model.js)
+            ↓
+Step 4 → Setup Routes             (routes/auth.routes.js)
+            ↓
+Step 5 → Write Controllers        (controllers/auth.controller.js)
+            ↓
+Step 6 → Test with Postman        (register/login/logout)
+            ↓
+Step 7 → Add Email                (mailtrap setup)
+            ↓
+Step 8 → Add Middleware           (protect routes)
+
+Code Written ✅
+
+src/config/db.js — MongoDB connection with error handling
+src/models/user.model.js — User schema with all fields, timestamps
+server.js — updated with DB connection call
+
+Concepts Understood ✅
+
+.then() and .catch() — success and failure handling
+Schema fields — types, required, unique, trim, lowercase
+new keyword for classes like mongoose.Schema
+{ timestamps: true } — auto createdAt and updatedAt
+mongoose.model('Name', schema) — creating a model
+HTTP methods — GET, POST, PUT, DELETE
+Why /api/auth/ prefix for routes
+
+Server Status ✅
+Server is running on port: 5000
+DB Connected
