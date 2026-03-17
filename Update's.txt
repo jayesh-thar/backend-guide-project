@@ -52,3 +52,58 @@ Why /api/auth/ prefix for routes
 Server Status ✅
 Server is running on port: 5000
 DB Connected
+
+day04:
+
+'register' - routes:
+    // Step 1: Get data from request body
+    // Step 2: Check if user already exists
+    // Step 3: Hash password
+    // Step 4: Save new user to DB
+    // Step 5: Create JWT token
+    // Step 6: Send token in cookie
+    // Step 7: Send success response
+    ⏳ Step 8: JWT token — coming next
+    ⏳ Step 9: Welcome email — coming next
+
+# try-catch:
+
+        const register = async (req, res) => {
+            try {
+                // ALL your code here
+                // get data
+                // validate fields
+                // check existing user
+                // hash password
+                // create user
+                // send response
+            } catch(error) {
+                return res.status(500).json({
+                    success: false,
+                    message: 'Server error',
+                    error: error.message
+                })
+            }
+        }
+
+'login'- routes
+    // Step 1: Get email, password from req.body
+    // Step 2: Validate missing fields
+    // Step 3: Check user exists in DB
+    // Step 4: Compare password with bcryptjs.compare()
+    // Step 5: Send success or error response
+    ⏳ Step 6: JWT token — coming next
+
+# Concepts Learned Today:
+    - bcryptjs.hash() — hashing password before saving
+    - bcryptjs.compare() — comparing plain vs hashed password
+    - Why same password gives different hash every time — random salt
+    - How .compare() works internally — extracts salt from stored hash
+    - SHA256 vs Bcrypt — deterministic vs random salt
+    - try/catch — why and when catch executes
+    - .select('-password') — when to use and when not to
+    - .toObject() — converting mongoose document to plain JS object
+    - delete object.property — removing sensitive data before response
+    - return before res.json() — preventing double response error
+    - Named exports — export { register, login }
+
