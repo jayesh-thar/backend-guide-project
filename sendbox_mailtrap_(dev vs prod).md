@@ -1,7 +1,6 @@
+# The Full Picture
 
-## The Full Picture
-```
-Your Code (nodemailer)
+```Your Code (nodemailer)
         ↓
 SMTP Server (mailtrap/sendgrid/gmail)
         ↓
@@ -32,8 +31,8 @@ User's Inbox
 ## Development vs Production Flow
 
 **Development (Mailtrap Sandbox):**
-```
-Your code sends email
+
+```Your code sends email
         ↓
 nodemailer connects to sandbox.smtp.mailtrap.io
         ↓
@@ -44,8 +43,8 @@ Real user NEVER gets it ❌
 ```
 
 **Production (Real SMTP):**
-```
-Your code sends email
+
+```Your code sends email
         ↓
 nodemailer connects to real SMTP (SendGrid/Resend)
         ↓
@@ -65,6 +64,7 @@ User gets email in inbox ✅
 ## Your `.env` — One Naming Issue
 
 You used:
-```
-MAILTRAP_USERNAME  // your .env
+
+```MAILTRAP_USERNAME  // your .env
 MAILTRAP_USER      // standard naming
+```
