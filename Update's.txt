@@ -1,154 +1,1120 @@
-Yes solid progress today for a first session:
+╔══════════════════════════════════════════════════════════════════════════════════╗
+║                                                                                  ║
+║                     AUTHFLOW — DEVELOPER JOURNAL                                 ║
+║                     Backend Authentication Project                               ║
+║                     Node.js + Express + MongoDB                                  ║
+║                                                                                  ║
+║                     Developer  : Jayesh                                          ║
+║                     Started    : Day 01                                          ║
+║                     Completed  : Day 06+                                         ║
+║                     Guided by  : Claude (Anthropic)                              ║
+║                                                                                  ║
+╚══════════════════════════════════════════════════════════════════════════════════╝
 
-✅ Full auth flow diagram — multiple iterations, each one better
-✅ Understood JWT + Cookie concept
-✅ ES Modules vs CommonJS — import/export
-✅ dotenv setup and why it exists
-✅ Basic Express server running
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                              PROJECT OVERVIEW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-
-Tomorrow We Continue With:
-
-MongoDB Atlas setup + connection (config/db.js)
-User model / schema (models/user.model.js)
-Then slowly into routes and controllers
-
-
-----
-Day 02:
-
-*Step 1 → Connect MongoDB          (config/db.js)
-            ↓
-*Step 2 → Update server.js         (call db connection)
-            ↓
-*Step 3 → Create User Model        (models/user.model.js)
-            ↓
-Step 4 → Setup Routes             (routes/auth.routes.js)
-            ↓
-Step 5 → Write Controllers        (controllers/auth.controller.js)
-            ↓
-Step 6 → Test with Postman        (register/login/logout)
-            ↓
-Step 7 → Add Email                (mailtrap setup)
-            ↓
-Step 8 → Add Middleware           (protect routes)
-
-Code Written ✅
-
-src/config/db.js — MongoDB connection with error handling
-src/models/user.model.js — User schema with all fields, timestamps
-server.js — updated with DB connection call
-
-Concepts Understood ✅
-
-.then() and .catch() — success and failure handling
-Schema fields — types, required, unique, trim, lowercase
-new keyword for classes like mongoose.Schema
-{ timestamps: true } — auto createdAt and updatedAt
-mongoose.model('Name', schema) — creating a model
-HTTP methods — GET, POST, PUT, DELETE
-Why /api/auth/ prefix for routes
-
-Server Status ✅
-Server is running on port: 5000
-DB Connected
-
-day04:
-
-'register' - routes:
-    // Step 1: Get data from request body
-    // Step 2: Check if user already exists
-    // Step 3: Hash password
-    // Step 4: Save new user to DB
-    // Step 5: Create JWT token
-    // Step 6: Send token in cookie
-    // Step 7: Send success response
-    ⏳ Step 8: JWT token — coming next
-    ⏳ Step 9: Welcome email — coming next
-
-# try-catch:
-
-        const register = async (req, res) => {
-            try {
-                // ALL your code here
-                // get data
-                // validate fields
-                // check existing user
-                // hash password
-                // create user
-                // send response
-            } catch(error) {
-                return res.status(500).json({
-                    success: false,
-                    message: 'Server error',
-                    error: error.message
-                })
-            }
-        }
-
-'login'- routes
-    // Step 1: Get email, password from req.body
-    // Step 2: Validate missing fields
-    // Step 3: Check user exists in DB
-    // Step 4: Compare password with bcryptjs.compare()
-    // Step 5: Send success or error response
-    ⏳ Step 6: JWT token — coming next
-
-# Concepts Learned Today:
-    - bcryptjs.hash() — hashing password before saving
-    - bcryptjs.compare() — comparing plain vs hashed password
-    - Why same password gives different hash every time — random salt
-    - How .compare() works internally — extracts salt from stored hash
-    - SHA256 vs Bcrypt — deterministic vs random salt
-    - try/catch — why and when catch executes
-    - .select('-password') — when to use and when not to
-    - .toObject() — converting mongoose document to plain JS object
-    - delete object.property — removing sensitive data before response
-    - return before res.json() — preventing double response error
-    - Named exports — export { register, login }
-
-day05:
-
-#Login flow:
-
-        Login success
-            ↓
-        Server creates JWT token with userId inside
-            ↓
-        Server puts token in httpOnly cookie
-            ↓
-        Browser stores cookie automatically
-            ↓
-        Next request → browser sends cookie automatically
-            ↓
-        Server reads cookie → verifies token → knows who you are
-            ↓
-        Logout → server clears cookie → token gone
-
-npm i 
-    jsonwebtoken - to create JWT token
-    cookie-parser - middleware that read cookie | node can't read we need middleware that read cookie
+Goal       : Build a production-grade authentication REST API from scratch
+Stack      : Node.js, Express, MongoDB Atlas, Mongoose, JWT, bcryptjs,
+             Nodemailer, Mailtrap, cookie-parser, express-rate-limit
+Approach   : Basic working version → understand internally → upgrade to production
+Tool       : Postman for API testing, MongoDB Compass for DB viewing
+Style      : ES Modules (import/export) — not CommonJS (require)
 
 
-# What We Built:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                         PRE-START — SETUP & PLANNING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-    generateToken.js ✅
-        jwt.sign() → creates token with userId + expiry
-        res.cookie() → stores token in httpOnly cookie
-        return token → for flexibility (mobile apps)
-    
-    Updated auth.controller.js ✅
-        register → generateToken(user._id, res) after create
-        login    → generateToken(userExisted._id, res) after verify
-        logout   → res.cookie('token', '', { maxAge: 0 }) clears cookie
-    
-    Updated auth.routes.js ✅
-        POST /api/auth/register → register
-        POST /api/auth/login    → login
-        POST /api/auth/logout   → logout
+Environment Setup:
+  ✅ Node.js installed (node -v confirmed)
+  ✅ VS Code as editor
+  ✅ MongoDB Atlas account created
+  ✅ MongoDB Compass installed
+  ✅ Mailtrap account created (sandbox ready)
+  ✅ Postman installed and collection created
 
-# Also learn:
-    Cookie Lifecycle
-        LOGIN  → browser stores cookie (7 days)
-        REQUEST → browser auto sends cookie
-        LOGOUT → browser removes cookie (maxAge: 0)
+Project Initialization:
+  ✅ Created folder: backend/auth/
+  ✅ npm init -y
+  ✅ npm i express
+  ✅ npm i nodemon
+  ✅ Created src/ folder
+  ✅ Created src/app.js
+  ✅ Created server.js (root level)
+  ✅ package.json → scripts → "dev": "nodemon server.js"
+
+Initial Packages Installed:
+  - express
+  - nodemon
+  - mongoose
+  - dotenv
+  - bcryptjs
+  - jsonwebtoken
+  - cookie-parser
+  - cors
+  - nodemailer
+  - express-rate-limit  (added later)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                    FLOW DIAGRAM — DESIGNED BEFORE CODING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Before writing a single line of code — a full auth flow diagram was designed.
+This went through 6 iterations, each improving the previous version.
+
+Final Flow Agreed Upon:
+
+  REGISTER:
+    User sends data
+        → check email already exists?
+            YES → "Email already registered" error
+            NO  → hash password → save to DB → JWT token
+               → store in cookie → send welcome email → success
+
+  LOGIN:
+    User sends email + password
+        → check user exists in DB?
+            NO  → "User not found" error
+            YES → bcryptjs.compare(password, hashedPassword)
+                WRONG → "Invalid password" error
+                RIGHT → JWT token → store in cookie → success
+
+  LOGOUT:
+    User hits /logout
+        → clear cookie (maxAge: 0) → success
+
+  FORGOT PASSWORD:
+    User sends email
+        → check user exists?
+            NO  → "Email not found" error
+            YES → generate reset token → save token + expiry to DB
+               → send reset email with link → success
+
+  RESET PASSWORD:
+    User sends token (from URL) + new password
+        → find user by token → check token not expired
+            INVALID/EXPIRED → error
+            VALID → hash new password → save → clear token → success
+
+  PROTECTED ROUTE:
+    Any request to protected endpoint
+        → middleware checks cookie for JWT
+            NO TOKEN   → 401 Unauthorized
+            BAD TOKEN  → 401 Unauthorized
+            GOOD TOKEN → decode → attach userId to req → continue
+
+
+Key Doubts Raised During Diagram Phase:
+  Q: Where does JWT go after login?
+  A: Stored in an httpOnly cookie — browser auto sends it with every request
+
+  Q: What is httpOnly and why?
+  A: JavaScript cannot read httpOnly cookies — protects against XSS attacks
+
+  Q: Why cookie and not localStorage?
+  A: Cookie auto-sends with requests. localStorage is vulnerable to XSS.
+
+  Q: What is a protected route vs normal route?
+  A: Public = anyone can access. Protected = must be logged in (valid token required)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                              DAY 01 — SERVER SETUP
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Files Created:
+  - server.js
+  - src/app.js
+  - .env
+  - .gitignore
+
+Key Decisions Made:
+  → Use ES Modules (import/export) not CommonJS (require/module.exports)
+     Reason: Modern projects and new companies use ES Modules
+     Setup: Added "type": "module" to package.json
+
+  → Use import/export style throughout entire project
+
+Concepts Learned:
+
+  1. import vs require
+     ┌─────────────────────────────────────────────────────┐
+     │ CommonJS (old)     │ ES Module (new)                │
+     │ require('x')       │ import x from 'x'             │
+     │ module.exports = x │ export default x              │
+     │ exports { x, y }   │ export { x, y }               │
+     └─────────────────────────────────────────────────────┘
+
+  2. export default vs named export
+     - export default  → one main thing per file → import x from '...'
+     - export { x, y } → multiple things → import { x, y } from '...'
+     - Named imports must match export name exactly
+
+  3. dotenv — why and how
+     - .env file stores secrets (DB password, JWT secret)
+     - dotenv.config() reads .env → loads into process.env
+     - Must be called BEFORE anything that uses process.env
+     - .env values accessed via process.env.VARIABLE_NAME
+     - .env only supports # comments, NOT // comments
+
+  4. app.listen() — what it needs
+     - First param: port number
+     - Second param: callback function (runs when server starts)
+     - process.env.PORT || 5000 — fallback if .env not loaded
+
+  5. ES Module import hoisting issue
+     - ALL import statements are hoisted before any code runs
+     - Even dotenv.config() runs AFTER imports
+     - Solution: use  import 'dotenv/config'  instead
+     - This guarantees .env is loaded before anything
+
+Bugs Fixed:
+  ✗ Missing .js extension on local file imports (ES Module requirement)
+  ✗ console.log(`${PORT}`) should be console.log(`${process.env.PORT}`)
+  ✗ dotenv.config() placed after imports — moved to top
+  ✗ PORT in .env had spaces around = sign (invalid)
+
+Correct .env format:
+  PORT=5000          ✅
+  PORT = 5000        ❌ (spaces not allowed)
+  "PORT" = "5000"    ❌ (no quotes)
+  PORT:5000          ❌ (no colons)
+
+server.js (final):
+  import 'dotenv/config'
+  import app from './src/app.js'
+  import connectDB from './src/config/db.js'
+  connectDB()
+  const port = process.env.PORT || 5000
+  app.listen(port, () => {
+    console.log(`Server is running on port: ${port}`)
+  })
+
+Server Status Achieved:
+  ✅ Server is running on port: 5000
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                         DAY 02 — DATABASE + USER SCHEMA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Files Created:
+  - src/config/db.js
+  - src/models/user.model.js
+
+─────────────────────────────────────
+STEP 1: MongoDB Connection (db.js)
+─────────────────────────────────────
+
+  Basic version first:
+    mongoose.connect(process.env.MONGO_URI)
+      .then(() => console.log('DB Connected'))
+      .catch((error) => console.log('DB Failed:', error))
+
+  Key Concepts:
+    - .then()  → runs on success
+    - .catch() → runs on failure (error handling)
+    - mongoose.connect() returns a Promise → needs .then/.catch
+
+  .env addition:
+    MONGO_URI=mongodb+srv://user:password@cluster.mongodb.net/dbname
+
+  Server Status:
+    ✅ Server is running on port: 5000
+    ✅ DB Connected
+
+─────────────────────────────────────
+STEP 2: User Schema (user.model.js)
+─────────────────────────────────────
+
+  Fields Decided:
+    - username            → String, required, trim
+    - email               → String, required, unique, lowercase, trim, regex match
+    - password            → String, required, minlength: 6
+    - resetPasswordToken  → String (optional — for forgot password)
+    - resetPasswordExpiresAt → Date (optional — token expiry)
+    - lastLogin           → Date (optional — tracking)
+    - createdAt / updatedAt → Auto via timestamps: true
+
+  Key Concepts Learned:
+
+    1. new keyword for Schema
+       - Schema is a CLASS → needs new keyword
+       - mongoose.Schema({}) ❌
+       - new mongoose.Schema({}) ✅
+
+    2. Schema field definition
+       fieldName: {
+         type: String/Number/Date/Boolean,
+         required: true,           → validation
+         unique: true,             → no duplicates
+         trim: true,               → remove spaces
+         lowercase: true,          → auto lowercase
+         minlength: 6,             → minimum length
+         match: [regex, 'message'] → pattern validation
+       }
+
+    3. require vs required
+       - require: true  ❌ (wrong — does nothing)
+       - required: true ✅ (mongoose validates this)
+
+    4. timestamps: true
+       - Second argument to Schema constructor
+       - Auto adds createdAt and updatedAt fields
+       - new mongoose.Schema({...}, { timestamps: true })
+
+    5. mongoose.model('User', userSchema)
+       - First arg: 'User' → collection name becomes 'users' (plural, lowercase)
+       - Second arg: schema to use
+       - Returns Model — used for all DB operations
+
+    6. User (Model) vs user (document)
+       - User = blueprint/tool to query the whole collection
+       - user = one specific record returned from DB
+       - Only documents have _id, .email etc. — not the Model itself
+
+  Important Distinction:
+    User.findOne()    → returns one document (has _id, fields etc.)
+    User.find()       → returns ARRAY of documents
+    users[0]._id      → access _id from array
+    user._id          → access _id from single document
+
+  Bugs Fixed:
+    ✗ require instead of required (silent bug — validation never runs)
+    ✗ Missing new keyword before mongoose.Schema
+    ✗ export default userModel (renamed variable to User but forgot to update export)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                         DAY 03 — ROUTES + CONTROLLERS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Files Created:
+  - src/routes/auth.routes.js
+  - src/controllers/auth.controller.js
+
+─────────────────────────────────────
+ROUTES (auth.routes.js)
+─────────────────────────────────────
+
+  HTTP Methods Learned:
+    ┌──────────┬──────────────────────────────┐
+    │ Method   │ Used For                     │
+    ├──────────┼──────────────────────────────┤
+    │ GET      │ Reading data                 │
+    │ POST     │ Sending/Creating data        │
+    │ PUT      │ Updating data                │
+    │ DELETE   │ Deleting data                │
+    └──────────┴──────────────────────────────┘
+
+  Route Naming Convention:
+    /api/auth/register
+    /api/auth/login
+    /api/auth/logout
+    Prefix /api → this is a backend API
+    Prefix /auth → authentication group
+
+  express.Router():
+    - Creates a mini app to handle group of routes
+    - Not a class — no new keyword needed
+    - router.post('/register', controllerFunction)
+
+  Key Distinction — Function Reference vs Call:
+    router.post('/register', register)    ✅ reference — called when request comes
+    router.post('/register', register())  ❌ call — runs immediately at server start
+
+  Status Codes Learned:
+    200 → Success (general)
+    201 → Created successfully
+    400 → Bad request (user error)
+    401 → Unauthorized (not logged in)
+    404 → Not found
+    500 → Internal server error
+
+  app.js Updated:
+    - import express.json() middleware → parses incoming JSON body
+      Without this → req.body = undefined
+    - app.use('/api/auth', authRouter)
+      Any URL starting with /api/auth → goes to authRouter
+
+─────────────────────────────────────
+CONTROLLERS (auth.controller.js)
+─────────────────────────────────────
+
+  Header Comment Format (Production Standard):
+    // @desc    Register a new user
+    // @route   POST /api/auth/register
+    // @access  Public
+
+  Controller Function Pattern:
+    const register = async (req, res) => {
+      try {
+        // all logic here
+      } catch (error) {
+        return res.status(500).json({
+          success: false,
+          message: 'Server error',
+          error: error.message
+        })
+      }
+    }
+
+  Why try/catch:
+    - DB calls can fail anytime
+    - findOne() / create() / save() → all can throw errors
+    - Without catch → server crashes with no response
+    - With catch → graceful 500 error sent back
+
+  Why return before res.json():
+    - Without return → function keeps running after sending response
+    - Causes: "Cannot set headers after they are sent" error
+    - Always return when sending early error response
+
+  Response Format (Production Standard):
+    res.status(200).json({
+      success: true/false,
+      message: 'Human readable message',
+      data: {...}  // optional
+    })
+
+  register() Flow Built:
+    1. const { username, email, password } = req.body
+    2. if (!username || !email || !password) → 400 error
+    3. if (password.length < 6) → 400 error
+    4. const existingUser = await User.findOne({ email })
+    5. if (existingUser) → 400 "User already exists"
+    6. const hashedPassword = await bcryptjs.hash(password, 10)
+    7. const user = await User.create({ username, email, password: hashedPassword })
+    8. const userResponse = await User.findById(user._id).select('-password')
+    9. res.status(201).json({ success: true, message: '...', userResponse })
+
+  login() Flow Built:
+    1. const { email, password } = req.body
+    2. if (!email || !password) → 400 error
+    3. const userExisted = await User.findOne({ email })
+    4. if (!userExisted) → 400 "User not found"
+    5. const correctPassword = await bcryptjs.compare(password, userExisted.password)
+    6. if (!correctPassword) → 400 "Incorrect password"
+    7. delete password from response object
+    8. res.status(200).json({ success: true, message: '...' })
+
+  logout() Flow Built:
+    1. res.cookie('token', '', { maxAge: 0 })
+    2. res.status(200).json({ success: true, message: 'Logged out' })
+    NOTE: logout has no await → no async needed
+
+  Tested in Postman:
+    ✅ POST /api/auth/register → 201 user created
+    ✅ POST /api/auth/register (duplicate) → 400 already exists
+    ✅ POST /api/auth/login (correct) → 200 success
+    ✅ POST /api/auth/login (wrong pass) → 400 incorrect
+    ✅ POST /api/auth/login (wrong email) → 400 not found
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                    BCRYPT DEEP DIVE — KEY UNDERSTANDING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+This was a major doubt that was fully resolved.
+
+  Q: Can I hash the login password and compare with DB hash?
+  A: NO — bcrypt adds RANDOM salt every time. Same password → different hash always.
+
+  SHA256 vs bcrypt:
+  ┌────────────────────┬────────────────────┬────────────────────┐
+  │                    │ SHA256             │ bcrypt             │
+  ├────────────────────┼────────────────────┼────────────────────┤
+  │ Salt               │ None               │ Random every time  │
+  │ Same input = same  │ Yes (deterministic)│ No (always diff)   │
+  │ Reversible         │ No                 │ No                 │
+  │ Speed              │ Very fast          │ Slow (intentional) │
+  │ Rainbow table safe │ No (vulnerable)    │ Yes (protected)    │
+  │ For passwords      │ No                 │ Yes                │
+  └────────────────────┴────────────────────┴────────────────────┘
+
+  How bcrypt.compare() works internally:
+    1. Extract salt from stored hash (salt is embedded inside the hash string)
+    2. Extract rounds from stored hash
+    3. Hash the plain password using SAME salt + SAME rounds
+    4. Compare new hash with stored hash
+    5. Match → true | No match → false
+
+  Hash string structure:
+    $2a$10$N9qo8uLOickgx2ZMRZoMye.restofhash
+     ↑   ↑  ↑_____________________↑↑_________↑
+     ver rounds    salt (22 chars)    actual hash
+
+  Who decides the salt?
+    → bcrypt generates it internally and randomly every time
+    → You only control rounds (10 is production standard)
+    → Higher rounds = slower = harder to brute force
+
+  Proof ran mentally:
+    bcrypt.hash("hello123", 10) → "$2a$10$ABC..."
+    bcrypt.hash("hello123", 10) → "$2a$10$XYZ..."  (different!)
+    SHA256("hello123")          → "0b8da7b3..."  (same always)
+    SHA256("hello123")          → "0b8da7b3..."  (same always)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                     DAY 04 — JWT TOKENS + COOKIES + MIDDLEWARE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Files Created:
+  - src/utils/generateToken.js
+  - src/middleware/auth.middleware.js
+
+Packages Installed:
+  npm i jsonwebtoken cookie-parser
+
+─────────────────────────────────────
+JWT — JSON Web Token
+─────────────────────────────────────
+
+  Why JWT?
+    HTTP is stateless — server forgets you after every request.
+    JWT solves this: after login, server creates a token with your userID.
+    Every future request sends this token → server knows who you are.
+
+  JWT Structure (3 parts separated by dots):
+    eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySUQiOiIxMjMifQ.abc123
+            ↑                      ↑                  ↑
+        Header               Payload              Signature
+      (algorithm)          (userID+exp)         (secret stamp)
+
+  IMPORTANT: Payload is encoded NOT encrypted — anyone can read it.
+  → Never store passwords or sensitive data in JWT payload.
+
+  jwt.sign() — Creating a token:
+    jwt.sign(
+      { userID },              → payload (what to store inside)
+      process.env.JWT_SECRET,  → secret key (server's stamp)
+      { expiresIn: '7d' }      → options (when it expires)
+    )
+
+  jwt.verify() — Verifying a token:
+    const decoded = jwt.verify(token, process.env.JWT_SECRET)
+    → checks signature is valid (not tampered)
+    → checks token not expired
+    → returns payload if valid
+    → throws error if invalid → caught by catch block
+
+  JWT Secret Key:
+    → 256 bit (64 chars) is production standard
+    → Generated using online JWT secret generator
+    → Stored in .env — never hardcode
+
+  Why new token every login?
+    Token contains expiry timestamp — always different → always different token.
+    This is normal and correct behavior (stateless approach).
+
+─────────────────────────────────────
+COOKIES
+─────────────────────────────────────
+
+  What is a cookie?
+    Small data browser stores and automatically sends with every request
+    to same server. We store JWT inside cookie.
+
+  Cookie vs localStorage:
+  ┌────────────────────┬───────────────────┬───────────────────┐
+  │                    │ Cookie            │ localStorage      │
+  ├────────────────────┼───────────────────┼───────────────────┤
+  │ Auto sent          │ Yes               │ No (manual)       │
+  │ httpOnly option    │ Yes               │ No                │
+  │ XSS safe           │ Yes (httpOnly)    │ No (vulnerable)   │
+  │ Expiry control     │ Yes               │ Manual            │
+  │ Best for           │ Auth tokens       │ Non-sensitive     │
+  └────────────────────┴───────────────────┴───────────────────┘
+
+  Cookie options used:
+    httpOnly: true      → JS cannot read cookie (XSS protection)
+    secure: true        → HTTPS only
+    sameSite: 'strict'  → same site only (CSRF protection)
+    maxAge: 7*24*60*60*1000 → 7 days in milliseconds
+
+  Cookie Lifecycle:
+    LOGIN  → res.cookie('token', jwtString, {...}) → browser stores
+    REQUEST → browser auto sends cookie → server reads req.cookies.token
+    LOGOUT → res.cookie('token', '', { maxAge: 0 }) → browser removes
+
+  Why cookie-parser middleware?
+    Without it: req.cookies = undefined
+    With it: req.cookies.token = your JWT string
+
+─────────────────────────────────────
+generateToken.js
+─────────────────────────────────────
+
+  Why separate file?
+    Both register and login need to create tokens.
+    DRY principle — Don't Repeat Yourself.
+    One reusable function used everywhere.
+
+  Function signature:
+    const generateToken = (userID, res) => { ... }
+    → userID: stored inside token payload
+    → res: needed to call res.cookie() to set the cookie
+
+  Why return token?
+    → Mobile apps don't use cookies — they need token in response body
+    → Returning it gives flexibility for both web and mobile
+
+─────────────────────────────────────
+AUTH MIDDLEWARE (auth.middleware.js)
+─────────────────────────────────────
+
+  What is middleware?
+    Function that runs BETWEEN request and controller.
+    Has access to req, res, and next.
+    next() → passes control to next function in chain.
+    Without calling next() → request stops at middleware forever.
+
+  verifyToken flow:
+    1. const token = req.cookies.token
+    2. if (!token) → return 401 "No token"
+    3. const decoded = jwt.verify(token, JWT_SECRET)
+    4. req.userId = decoded.userID
+    5. next()
+    catch → 401 "Invalid token"
+
+  How to use on routes:
+    router.get('/profile', verifyToken, controller)
+    → verifyToken runs first → if valid → controller runs
+    → if invalid → 401 returned, controller never runs
+
+  Protected vs Public routes:
+    Public:    router.post('/register', register)
+    Protected: router.get('/profile', verifyToken, profileController)
+
+  Profile test route added:
+    router.get('/profile', verifyToken, (req, res) => {
+      res.json({ success: true, userId: req.userId })
+    })
+
+  Tested in Postman:
+    ✅ GET /profile without token → 401 Unauthorized
+    ✅ GET /profile with valid cookie → { success: true, userId: '...' }
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                         DAY 05 — EMAIL SYSTEM (MAILTRAP)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Files Created:
+  - src/config/mailtrap.js
+  - src/utils/sendEmail.js
+
+Package Installed:
+  npm i nodemailer (already listed, just set up now)
+
+─────────────────────────────────────
+HOW EMAIL WORKS
+─────────────────────────────────────
+
+  Full email flow:
+    Your Code (nodemailer)
+        → SMTP Server (Mailtrap sandbox)
+        → (caught here — never delivered in sandbox)
+        → In production: real SMTP → user's inbox
+
+  SMTP = Simple Mail Transfer Protocol
+    → Language email servers use to communicate
+    → Like HTTP is for web, SMTP is for email
+    → Ports: 25, 465, 587, 2525 (different security levels)
+    → Port 2525 with secure: false → STARTTLS (what Mailtrap uses)
+
+  Nodemailer:
+    → Just a Node.js library that knows how to talk to SMTP servers
+    → Not a mail server — just a messenger
+
+  Mailtrap Sandbox:
+    → Catches ALL emails — never delivers to real users
+    → Shows in Mailtrap dashboard
+    → Perfect for development testing
+
+  Transporter:
+    → Configured connection to SMTP server
+    → Set up once → use everywhere to send emails
+
+─────────────────────────────────────
+CRITICAL BUG — dotenv + ES Modules
+─────────────────────────────────────
+
+  Problem:
+    Transporter was created at file import time.
+    But ES Modules hoist ALL imports before any code.
+    So process.env values were undefined when mailtrap.js loaded.
+    Result: nodemailer fell back to localhost:587 (default)
+    Error: "ECONNREFUSED 127.0.0.1:587"
+
+  Solution 1: Use import 'dotenv/config' in server.js
+  Solution 2: Wrap transporter in a factory function
+
+  Factory function approach:
+    // mailtrap.js
+    const createTransporter = () => {
+      return nodemailer.createTransport({...})
+    }
+    export default createTransporter
+
+    // sendEmail.js
+    const transporter = createTransporter()  // created at call time
+    → By call time, dotenv is fully loaded ✅
+
+  Why this works:
+    Transporter is now created WHEN sendEmail() is called
+    Not when file is imported
+    By that time all .env values are loaded
+
+─────────────────────────────────────
+sendEmail.js
+─────────────────────────────────────
+
+  Used object destructuring for parameters:
+    const sendEmail = async ({ to, subject, html }) => {...}
+
+  Why object params over positional:
+    sendEmail(email, subject, html)     → must remember exact order
+    sendEmail({ to, subject, html })    → named, order doesn't matter
+    Self-documenting, production standard
+
+  Usage in controller:
+    sendEmail({
+      to: user.email,
+      subject: "Welcome to MyApp! 🎉",
+      html: `<h1>Welcome ${user.username}!</h1>`
+    })
+
+─────────────────────────────────────
+Emails Implemented
+─────────────────────────────────────
+
+  1. Welcome Email (on register)
+     → Beautiful HTML with purple header
+     → Shows username, email, account details
+     → "Get Started" button
+     → Sent AFTER user created, BEFORE response
+
+  2. Password Reset Email (on forgot-password)
+     → Contains reset link with token
+     → Link: http://localhost:5000/api/auth/reset-password/TOKEN
+     → Expires in 1 hour
+
+  3. Password Reset Success Email (on reset-password)
+     → Green header design
+     → Shows reset timestamp
+     → Security warning: if you didn't do this, contact support
+     → Login Now button
+
+  Other email providers for production:
+  ┌─────────────────┬──────────────┬───────────────────┐
+  │ Service         │ Free Tier    │ Best For          │
+  ├─────────────────┼──────────────┼───────────────────┤
+  │ Mailtrap Live   │ 1000/month   │ Small projects    │
+  │ Resend          │ 3000/month   │ Modern apps       │
+  │ SendGrid        │ 100/day      │ Large scale       │
+  │ Brevo           │ 300/day      │ Good free tier    │
+  └─────────────────┴──────────────┴───────────────────┘
+
+  Key: Switching providers = just change .env values. Code stays same.
+
+  Bugs Fixed:
+    ✗ test03.com (missing @) → nodemailer "No recipients defined"
+    ✗ secure: false missing → nodemailer defaulted to wrong config
+    ✗ port as string → converted with Number(process.env.MAILTRAP_PORT)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                       DAY 06 — FORGOT + RESET PASSWORD
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+New routes added:
+  POST /api/auth/forgot-password
+  POST /api/auth/reset-password/:token
+
+  Note: :token is a URL parameter → accessed via req.params.token
+
+─────────────────────────────────────
+forgotPassword controller
+─────────────────────────────────────
+
+  Key concept — crypto module:
+    → Built into Node.js — no install needed
+    → crypto.randomBytes(32).toString('hex')
+    → Generates 32 random bytes → converts to 64 char hex string
+    → This becomes the reset token
+
+  Reset token storage:
+    user.resetPasswordToken = resetToken
+    user.resetPasswordExpiresAt = Date.now() + 1 * 60 * 60 * 1000
+    → 1 hour expiry
+    → Saved to DB with await user.save()
+
+  Why save token to DB?
+    → Need to verify it when user clicks reset link
+    → Token in URL must match token in DB
+    → Expiry time checked against current time
+
+─────────────────────────────────────
+resetPassword controller
+─────────────────────────────────────
+
+  Token from URL:
+    const token = req.params.token   ✅ correct
+    const { token } = req.param.token ❌ wrong (req.param + .token)
+
+  MongoDB $gt operator:
+    User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpiresAt: { $gt: Date.now() }
+    })
+    → $gt = "greater than"
+    → Finds user where token matches AND expiry is in the future
+
+  After reset:
+    user.password = hashedNewPassword
+    user.resetPasswordToken = undefined    → clear (one time use)
+    user.resetPasswordExpiresAt = undefined → clear
+    await user.save()
+
+  Testing in Postman:
+    Step 1: POST /forgot-password → email arrives in Mailtrap
+    Step 2: Copy token from reset link in email
+    Step 3: POST /reset-password/TOKEN with { newPassword: "..." }
+    Step 4: POST /login with new password → success ✅
+
+  Bug Fixed:
+    ✗ router.post('/reset-password:token')   ❌ missing slash
+    ✗ router.post('/reset-password/:token')  ✅ slash before colon required
+    ✗ newPassword sent as query param → should be in request body (JSON)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                        DAY 07 — RATE LIMITING + CLEANUP
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Package Installed:
+  npm i express-rate-limit
+
+─────────────────────────────────────
+Why Rate Limiting?
+─────────────────────────────────────
+
+  Without it:
+    → Attacker sends 1000 login attempts → brute force password
+    → Attacker sends 10,000 requests → server crashes (DDoS)
+
+  Types of limiters needed:
+    generalLimiter → whole app → 100 req/15min → normal browsing
+    authLimiter    → auth routes → 10 req/15min → strict for security
+
+  Why two limiters? (Important question asked):
+    Q: Why not just one limiter for everything?
+    A: If max=10 for everything → normal user gets blocked while browsing
+       Normal web page can easily use 10+ requests just loading assets.
+       Auth needs strict limit. Regular browsing needs generous limit.
+
+  Building analogy:
+    generalLimiter = building entrance → 100 people/hour
+    authLimiter    = server room → 10 people only (sensitive area)
+
+─────────────────────────────────────
+How Rate Limiter Works Internally
+─────────────────────────────────────
+
+  How it knows same IP:
+    → Every request has req.ip (automatically available)
+    → Stores counter per IP in memory:
+      { "192.168.1.1": { count: 3, resetTime: ... } }
+    → Same IP → find in memory → increment → check limit
+    → Default storage: memory (resets on server restart)
+    → Production: use Redis for persistent storage
+
+  How it blocks without explicit next():
+    → rateLimit() creates middleware with next() built inside
+    → Under limit → calls next() internally → router runs
+    → Over limit → calls res.json(message) → router never runs
+
+  standardHeaders vs legacyHeaders:
+    standardHeaders: true  → sends new RateLimit-* headers
+    legacyHeaders: false   → disables old X-RateLimit-* headers
+    → Headers tell client: requests remaining, reset time
+    → Frontend can show: "3 attempts remaining"
+
+  authLimiter config:
+    const authLimiter = rateLimit({
+      windowMs: 15 * 60 * 1000,   → 15 minutes
+      max: 10,                     → 10 attempts
+      message: { success: false, message: "Too many attempts..." },
+      standardHeaders: true,
+      legacyHeaders: false,
+    })
+
+  Applied to routes:
+    app.use('/api/auth', authLimiter, authRouter)
+    → Same path, multiple middleware — runs in order left to right
+
+  Middleware execution order (full chain):
+    express.json()
+        ↓
+    cookieParser()
+        ↓
+    authLimiter (check rate limit)
+        ↓
+    authRouter (find matching route)
+        ↓
+    verifyToken* (*protected routes only)
+        ↓
+    Controller (run logic)
+        ↓
+    Response sent
+
+─────────────────────────────────────
+Other Improvements Added
+─────────────────────────────────────
+
+  ✅ Email format validation via regex in user schema
+     match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Please enter valid email']
+     → Added in schema → validates everywhere automatically
+
+  ✅ lastLogin update on successful login
+     user.lastLogin = Date.now()
+     await user.save()
+     → Updated after password comparison, before generating token
+
+  ✅ Password reset success email
+     → Sent after successful password reset
+     → Green design with security warning
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                         FINAL PROJECT — COMPLETE OVERVIEW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Final File Structure:
+  auth/
+  ├── src/
+  │   ├── config/
+  │   │   ├── db.js
+  │   │   └── mailtrap.js
+  │   ├── controllers/
+  │   │   └── auth.controller.js
+  │   ├── middleware/
+  │   │   └── auth.middleware.js
+  │   ├── models/
+  │   │   └── user.model.js
+  │   ├── routes/
+  │   │   └── auth.route.js
+  │   └── utils/
+  │       ├── generateToken.js
+  │       └── sendEmail.js
+  ├── .env
+  ├── .gitignore
+  ├── package.json
+  └── server.js
+
+All API Endpoints:
+  POST   /api/auth/register          → Public
+  POST   /api/auth/login             → Public
+  POST   /api/auth/logout            → Public
+  POST   /api/auth/forgot-password   → Public
+  POST   /api/auth/reset-password/:token → Public
+  GET    /api/auth/profile           → Protected (verifyToken)
+
+Features Completed:
+  ✅ User Registration with validation
+  ✅ Duplicate email check
+  ✅ Password hashing (bcryptjs, 10 rounds)
+  ✅ Email format validation (regex)
+  ✅ Password length validation (min 6)
+  ✅ User Login with bcryptjs.compare()
+  ✅ JWT token generation
+  ✅ httpOnly cookie management
+  ✅ User Logout (cookie clear)
+  ✅ JWT verification middleware
+  ✅ Protected route example
+  ✅ Forgot password with reset token
+  ✅ Password reset with token verification
+  ✅ Token expiry check ($gt operator)
+  ✅ Reset token cleared after use
+  ✅ Welcome email (HTML template)
+  ✅ Password reset request email
+  ✅ Password reset success email
+  ✅ lastLogin timestamp update
+  ✅ Rate limiting (10 req/15min on auth routes)
+  ✅ try/catch error handling on all controllers
+  ✅ Proper HTTP status codes throughout
+  ✅ Password excluded from all responses
+
+Coming Soon / Future Improvements:
+  ⏳ CORS configuration for frontend
+  ⏳ Helmet.js security headers
+  ⏳ Redis for persistent rate limiting
+  ⏳ Refresh token system
+  ⏳ OAuth (Google, GitHub)
+  ⏳ Input sanitization (NoSQL injection)
+  ⏳ Winston logging
+  ⏳ TypeScript migration
+  ⏳ Docker setup
+  ⏳ Two-Factor Authentication (2FA)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                           ALL CONCEPTS LEARNED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+JavaScript / Node.js:
+  → ES Modules vs CommonJS (import/export vs require)
+  → export default vs named export { }
+  → async/await — when and why
+  → try/catch — error handling
+  → Promises — .then() and .catch()
+  → Template literals — `${variable}`
+  → Object destructuring — const { a, b } = obj
+  → Rest operator — const { password, ...rest } = obj
+  → || operator for fallback values
+  → typeof operator
+  → crypto module (built-in) — randomBytes
+  → process.env — environment variables
+  → Date.now() — current timestamp in ms
+
+Express:
+  → app.listen(port, callback)
+  → app.use() — middleware registration
+  → express.json() — body parser middleware
+  → express.Router() — mini app for route groups
+  → router.post/get/put/delete()
+  → req.body — request data
+  → req.params — URL parameters (:token)
+  → req.cookies — cookie data
+  → res.status().json() — send response
+  → res.cookie() — set cookie
+  → Middleware chain — next()
+  → Order matters — top to bottom execution
+
+MongoDB / Mongoose:
+  → mongoose.connect() — database connection
+  → new mongoose.Schema({}) — schema creation
+  → Schema field options: type, required, unique, trim, lowercase, minlength, match
+  → { timestamps: true } — auto createdAt/updatedAt
+  → mongoose.model('Name', schema) — model creation
+  → User.findOne({ field: value }) — find one document
+  → User.findById(id) — find by _id
+  → User.find() — find all (returns array)
+  → User.create({}) — create and save
+  → user.save() — save changes to existing document
+  → .select('-password') — exclude fields
+  → .toObject() — convert to plain JS object
+  → delete obj.property — remove property
+  → $gt operator — greater than in queries
+  → Model vs Document — uppercase vs lowercase distinction
+
+Security:
+  → bcryptjs.hash(password, saltRounds) — hashing
+  → bcryptjs.compare(plain, hashed) — verification
+  → jwt.sign(payload, secret, options) — token creation
+  → jwt.verify(token, secret) — token verification
+  → httpOnly cookies — XSS protection
+  → secure cookies — HTTPS only
+  → sameSite cookies — CSRF protection
+  → Rate limiting — brute force protection
+  → Never store passwords in plain text
+  → Never send passwords in responses
+  → Environment variables for secrets
+
+Email:
+  → nodemailer.createTransport({}) — SMTP setup
+  → transporter.sendMail({}) — send email
+  → from, to, subject, html fields
+  → SMTP protocol and ports
+  → Mailtrap sandbox for development
+  → HTML email templates with inline styles
+  → Switching providers = change .env values only
+
+HTTP:
+  → Status codes: 200, 201, 400, 401, 404, 500
+  → Methods: GET, POST, PUT, DELETE
+  → Request → Response cycle
+  → Headers — standardHeaders, legacyHeaders
+  → Rate limit headers
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                           ALL BUGS ENCOUNTERED + FIXED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  1.  Missing .js extension on local imports (ES Module requirement)
+  2.  console.log(`${PORT}`) → should be process.env.PORT
+  3.  dotenv.config() after imports → moved to import 'dotenv/config'
+  4.  PORT=5000 had spaces → PORT = 5000 is invalid
+  5.  // comments in .env → only # is valid
+  6.  require: true → should be required: true (mongoose)
+  7.  Missing new before mongoose.Schema()
+  8.  export default userModel → variable renamed to User but export not updated
+  9.  router.post('/register', register()) → should be register (no call)
+  10. status(5000) → should be status(500)
+  11. res.status().message() → should be res.status().json()
+  12. decoded.userId vs decoded.userID (case mismatch with jwt.sign payload)
+  13. token = req.cookies.token → missing const declaration
+  14. decoded = jwt.verify() → missing const declaration
+  15. if (req.userId = decoded.userId) → assignment not comparison inside if
+  16. bcryptjs.compare() missing await → returns Promise not boolean
+  17. Email sent as test03.com (missing @) → "No recipients defined" error
+  18. Mailtrap transporter created at import time → dotenv not loaded yet
+  19. port as string from .env → Number(process.env.MAILTRAP_PORT) needed
+  20. secure: false missing → nodemailer wrong connection mode
+  21. router.post('/reset-password:token') → missing / before :token
+  22. newPassword sent as query param → should be request body
+  23. windowMs: Date.now() * 60 * 15 → should be 15 * 60 * 1000
+  24. import { decode } from 'jsonwebtoken' → unnecessary, removed
+  25. sendMail vs sendEmail → function name mismatch
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                         PRODUCTION HABITS DEVELOPED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ✅ Always validate input before touching DB
+  ✅ Always return after sending error response
+  ✅ Never expose password in any response
+  ✅ Always use try/catch on async functions
+  ✅ Use proper HTTP status codes
+  ✅ Keep secrets in .env, never hardcode
+  ✅ Always add .gitignore with .env and node_modules
+  ✅ Use header comments on every controller function
+  ✅ Use step comments inside functions as plan
+  ✅ Remove debug console.logs before production
+  ✅ Validate input at schema level (once) not controller level (everywhere)
+  ✅ Use object params for functions with 3+ parameters
+  ✅ One responsibility per file (routes/controllers/models separated)
+  ✅ Test edge cases — empty body, wrong email, expired token etc.
+  ✅ Clear sensitive tokens after single use (reset token)
+  ✅ Rate limit sensitive endpoints
+  ✅ Use 201 for creation, 200 for success, never mix
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                              FINAL NOTE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  This project was built completely from scratch.
+  No copy-paste. No blind following. Just understanding.
+
+  Every bug was debugged. Every concept was questioned.
+  Every decision had a reason behind it.
+
+  Started with: console.log('hello')
+  Ended with:   A full production-grade auth API
+
+  "Every expert was once a beginner who refused to give up."
+
+  Keep building. Keep breaking things. Keep learning.
+  The best code you'll ever write is still ahead of you. 🚀
+
+  — Jayesh, AuthFlow v1.0.0, 2026
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
