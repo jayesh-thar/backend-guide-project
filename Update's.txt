@@ -951,15 +951,11 @@ Features Completed:
   ✅ Password excluded from all responses
 
 Coming Soon / Future Improvements:
-  ⏳ CORS configuration for frontend
+  ⏳ Refresh token system
   ⏳ Helmet.js security headers
   ⏳ Redis for persistent rate limiting
-  ⏳ Refresh token system
-  ⏳ OAuth (Google, GitHub)
   ⏳ Input sanitization (NoSQL injection)
   ⏳ Winston logging
-  ⏳ TypeScript migration
-  ⏳ Docker setup
   ⏳ Two-Factor Authentication (2FA)
 
 
