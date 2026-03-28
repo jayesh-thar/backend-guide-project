@@ -21,6 +21,9 @@ const userSchema = new mongoose.Schema(
       required: true,
       minlength: 6,
     },
+    refreshToken: {
+      type: String,
+    },
     resetPasswordToken: {
       type: String,
     },
@@ -30,7 +33,7 @@ const userSchema = new mongoose.Schema(
     lastLogin: {
       type: Date,
     },
-  },
+  },  
   { timestamps: true },
 ); //vFor createdAt and updatedAt to work automatically
 

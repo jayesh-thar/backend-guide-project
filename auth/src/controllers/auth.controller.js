@@ -95,7 +95,7 @@ const register = async (req, res) => {
       `,
     });
 
-    generateToken(user._id, res);
+    await generateToken(user._id, res);
 
     const userResponse = await User.findById(user._id).select("-password");
 
@@ -143,7 +143,7 @@ const login = async (req, res) => {
     );
 
     if (correctPassword) {
-      generateToken(userExisted._id, res);
+      await generateToken(userExisted._id, res);
       return res.status(200).json({
         success: true,
         message: `${userExisted.username} login successfully.`,
@@ -166,12 +166,34 @@ const login = async (req, res) => {
 // @desc    Logout user
 // @route   POST /api/auth/logout
 // @access  Public
-const logout = (req, res) => {
+const logout = async (req, res) => {
   try {
-    res.cookie("token", "", { maxAge: 0 });
+    const refreshToken = req.cookies.refreshToken;
+    if (!refreshToken) {
+      return res.status(401).json({
+        success: false,
+        message: "logout failed - no token - please login first",
+      });
+    }
+
+    const user = await User.findOne({ refreshToken });
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message:
+          "logout failed - no login user exist - login with valid credentials.",
+      });
+    }
+
+    user.refreshToken = undefined;
+    await user.save();
+
+    res.cookie("accessToken", "", { maxAge: 0 });
+    res.cookie("refreshToken", "", { maxAge: 0 });
+
     return res.status(200).json({
       success: true,
-      message: "User logout successfully.",
+      message: "Logged out successfully",
     });
   } catch (error) {
     return res.status(500).json({
@@ -192,7 +214,7 @@ const forgotPassword = async (req, res) => {
         message: `User with emailId: ${email} NOT FOUND.`,
       });
     }
-    user.lastLogin = Date.now()
+    user.lastLogin = Date.now();
     const resetToken = crypto.randomBytes(32).toString("hex");
     user.resetPasswordToken = resetToken;
     user.resetPasswordExpiresAt = Date.now() + 1 * 60 * 60 * 1000; // '1hr' from next sec
